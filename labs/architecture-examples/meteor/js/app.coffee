@@ -87,8 +87,7 @@ if Meteor.is_client
 
   # Register click event for toggling complete/not complete button
   Template.main.events = "click input#toggle-all": (evt) ->
-    completed = true
-    completed = false  unless Todos.find(completed: false).count()
+    completed = Todos.find(completed: false).count() isnt 0
     Todos.find({}).forEach (todo) ->
       Todos.update {_id: todo._id},
         $set: {completed: completed}
