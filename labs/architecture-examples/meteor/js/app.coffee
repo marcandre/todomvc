@@ -2,7 +2,7 @@
 Todos = new Meteor.Collection("todos")
 
 # Session var to keep current filter type ("all", "active", "completed")
-Session.set "filter", null
+Session.set "filter", 'all'
 
 # Session var to keep todo which is currently in editing mode, if any
 Session.set "editing_todo", null
@@ -52,6 +52,12 @@ if Meteor.is_client
   # Logic for the 'todoapp' partial which represents the whole app
   #//
 
+  filter_selections =
+    all: {}
+    active: {completed: false}
+    completed: {completed: true}
+  filters = (key for key, value of filter_selections)
+
   # Helper to get the number of todos
   Template.todoapp.todos = ->
     Todos.find().count()
@@ -74,14 +80,7 @@ if Meteor.is_client
 
   # Get the todos considering the current filter type
   Template.main.todos = ->
-    filter = {}
-    switch Session.get("filter")
-      when "active"
-        filter.completed = false
-      when "completed"
-        filter.completed = true
-    Todos.find filter, {sort: {created_at: 1}}
-
+    Todos.find filter_selections[Session.get("filter")], {sort: {created_at: 1}}
 
   Template.main.todos_not_completed = todos_not_completed_helper
 
@@ -137,15 +136,12 @@ if Meteor.is_client
   Template.footer.todos_one_not_completed = ->
     Todos.find(completed: false).count() is 1
 
-  Template.footer.filter = ->
-    all: "all"
-    active: "active"
-    completed: "completed"
+  Template.footer.filters = -> filters
+
 
   # True if the requested filter type is currently selected,
   # false otherwise
   Template.footer.filter_selected = (type) ->
-    return Session.equals("filter", null)  if type is "all"
     Session.equals "filter", type
 
   # Register click events for selecting filter type and
@@ -153,15 +149,7 @@ if Meteor.is_client
   Template.footer.events =
     "click button#clear-completed": ->
       Todos.remove completed: true
-
-    "click #filters a.all": (evt) ->
+  _.each filters, (filter) ->
+    Template.footer.events["click #filters a.#{filter}"] = (evt) ->
       evt.preventDefault()
-      Session.set "filter", null
-
-    "click #filters a.active": (evt) ->
-      evt.preventDefault()
-      Session.set "filter", "active"
-
-    "click #filters a.completed": (evt) ->
-      evt.preventDefault()
-      Session.set "filter", "completed"
+      Session.set "filter", filter

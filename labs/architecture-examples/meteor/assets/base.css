@@ -358,6 +358,7 @@ label[for='toggle-all'] {
 	color: #83756f;
 	margin: 2px;
 	text-decoration: none;
+	text-transform:capitalize;
 }
 
 #filters li a.selected {
