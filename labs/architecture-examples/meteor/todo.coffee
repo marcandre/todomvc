@@ -2,22 +2,6 @@ Tasks = new Meteor.Collection('tasks')
 ENTER_KEY = 13
 
 if Meteor.is_client
-	refreshUI = ->
-		allCompleted = Tasks.find(completed: false).count() == 0
-		$('#toggle-all').prop 'checked', allCompleted
-
-	# Listen to change on collection Tasks.
-	# When collection changed, refresh toggle all checkbox state
-	Tasks.find().observe
-		added: refreshUI
-		changed: refreshUI
-		removed: refreshUI
-
-	# Set the initial state of UI
-	Meteor.setTimeout ->
-		refreshUI()
-	, 200
-
 	Template.todo.tasks = ->
 		Tasks.find({}, sort: created_at: -1)
 
@@ -41,6 +25,9 @@ if Meteor.is_client
 						completed: false
 						created_at: new Date()
 					textbox.val('')
+
+	Template.todo.allChecked = ->
+		if Tasks.find(completed: false).count() == 0 then 'checked="checked"' else ''
 
 	Template.footer.incompleted = ->
 		Tasks.find(completed: false).count()
