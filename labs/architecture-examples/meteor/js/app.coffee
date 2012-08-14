@@ -19,30 +19,23 @@ if Meteor.is_client
   # Returns an event_map key for attaching "ok/cancel" events to
   # a text input (given by selector)
   okcancel_events = (selector) ->
-    "keyup " + selector + ", keydown " + selector + ", focusout " + selector
+    "keyup #{selector}, keydown #{selector}, focusout #{selector}"
 
 
   # Creates an event handler for interpreting "escape", "return", and "blur"
   # on a text field and calling "ok" or "cancel" callbacks.
   make_okcancel_handler = (options) ->
-    ok = options.ok or ->
-
-    cancel = options.cancel or ->
-
     (evt) ->
       if evt.type is "keydown" and evt.which is 27
-
         # escape = cancel
-        cancel.call this, evt
+        options.cancel?.call this, evt
       else if evt.type is "keyup" and evt.which is 13 or evt.type is "focusout"
-
         # blur/return/enter = ok/submit if non-empty
         value = String(evt.target.value or "")
         if value
-          ok.call this, value, evt
+          options.ok?.call this, value, evt
         else
-          cancel.call this, evt
-
+          options.cancel?.call this, evt
 
   # Some helpers
 
@@ -55,7 +48,6 @@ if Meteor.is_client
   todos_not_completed_helper = ->
     Todos.find(completed: false).count()
 
-
   #//
   # Logic for the 'todoapp' partial which represents the whole app
   #//
@@ -67,14 +59,14 @@ if Meteor.is_client
   Template.todoapp.events = {}
 
   # Register key events for adding new todo
-  Template.todoapp.events[okcancel_events("#new-todo")] = make_okcancel_handler(ok: (title, evt) ->
-    Todos.insert
-      title: $.trim(title)
-      completed: false
-      created_at: new Date().getTime()
+  Template.todoapp.events[okcancel_events("#new-todo")] = make_okcancel_handler
+    ok: (title, evt) ->
+      Todos.insert
+        title: $.trim(title)
+        completed: false
+        created_at: new Date().getTime()
 
-    evt.target.value = ""
-  )
+      evt.target.value = ""
 
   #//
   # Logic for the 'main' partial which wraps the actual todo list
@@ -88,9 +80,7 @@ if Meteor.is_client
         filter.completed = false
       when "completed"
         filter.completed = true
-    Todos.find filter,
-      sort:
-        created_at: 1
+    Todos.find filter, {sort: {created_at: 1}}
 
 
   Template.main.todos_not_completed = todos_not_completed_helper
@@ -100,13 +90,8 @@ if Meteor.is_client
     completed = true
     completed = false  unless Todos.find(completed: false).count()
     Todos.find({}).forEach (todo) ->
-      Todos.update
-        _id: todo._id
-      ,
-        $set:
-          completed: completed
-
-
+      Todos.update {_id: todo._id},
+        $set: {completed: completed}
 
 
   #//
@@ -114,22 +99,17 @@ if Meteor.is_client
   #//
 
   # True of current todo is completed, false otherwise
-  Template.todo.todo_completed = ->
-    @completed
+  Template.todo.todo_completed = -> @completed
 
 
   # Get the current todo which is in editing mode, if any
-  Template.todo.todo_editing = ->
-    Session.equals "editing_todo", @_id
+  Template.todo.todo_editing = -> Session.equals "editing_todo", @_id
 
 
   # Register events for toggling todo's state, editing mode and destroying a todo
   Template.todo.events =
     "click input.toggle": ->
-      Todos.update @_id,
-        $set:
-          completed: not @completed
-
+      Todos.update @_id, $set: {completed: not @completed}
 
     "dblclick .view": ->
       Session.set "editing_todo", @_id
@@ -137,20 +117,15 @@ if Meteor.is_client
     "click button.destroy": ->
       Todos.remove @_id
 
-
   # Register key events for updating title of an existing todo
-  Template.todo.events[okcancel_events("li.editing input.edit")] = make_okcancel_handler(
+  Template.todo.events[okcancel_events("li.editing input.edit")] = make_okcancel_handler
     ok: (value) ->
       Session.set "editing_todo", null
-      Todos.update @_id,
-        $set:
-          title: $.trim(value)
-
+      Todos.update @_id, $set: {title: $.trim(value)}
 
     cancel: ->
       Session.set "editing_todo", null
       Todos.remove @_id
-  )
 
   #//
   # Logic for the 'footer' partial
@@ -168,13 +143,11 @@ if Meteor.is_client
     active: "active"
     completed: "completed"
 
-
   # True if the requested filter type is currently selected,
   # false otherwise
   Template.footer.filter_selected = (type) ->
     return Session.equals("filter", null)  if type is "all"
     Session.equals "filter", type
-
 
   # Register click events for selecting filter type and
   # clearing completed todos
