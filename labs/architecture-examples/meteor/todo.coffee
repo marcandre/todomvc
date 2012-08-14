@@ -64,8 +64,6 @@ if Meteor.is_client
 			task = Tasks.findOne this._id
 			task.completed = $(evt.target).prop('checked')
 			Tasks.update _id: this._id, task
-			# force DOM redraw
-			Meteor.flush()
 
 		'click .destroy': (evt) ->
 			Template.item.updateTask this._id, null
