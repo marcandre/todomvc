@@ -1,0 +1,15 @@
+{
+  "meteor": {},
+  "dependencies": {
+    "basePackages": {
+      "emblem": {}
+    },
+    "packages": {
+      "emblem": {
+        "git": "https://github.com/marcandre/meteor-emblem.git",
+        "tag": "v0.0.2",
+        "commit": "3670b00e2af384fca846bc6ff095b13ff69997b5"
+      }
+    }
+  }
+}

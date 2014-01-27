@@ -1,0 +1,59 @@
+head
+  meta charset="utf-8"
+  title Meteor • TodoMVC
+
+body
+  section#todoapp data-framework="meteor"
+    > todoapp
+
+  footer#info
+    p Double-click to edit a todo
+    p
+      ' Created by Matthias Stumpp -
+      a href="http://github.com/MStumpp" GitHub
+      | &nbsp;&nbsp;
+      a href="http://twitter.com/MatStumpp" Twitter
+    p
+      a href="http://todomvcapp.meteor.com" Meteor TodoMVC
+    p
+      ' Part of
+      a href="http://todomvc.com" TodoMVC
+
+template name="todoapp"
+  header#header
+    h1 todos
+    input id="new-todo" placeholder="What needs to be done?" autofocus=""
+
+  if todos
+    > main
+    > footer
+
+template name="main"
+  section#main
+    input#toggle-all type="checkbox" checked="{{unless todos_not_completed | checked}}"
+    label for="toggle-all" Mark all as complete
+    ul#todo-list
+      each todos
+        > todo
+
+template name="todo"
+  li class="{{if todo_completed | completed}}{{if todo_editing | editing}}"
+    .view
+      input class="toggle" type="checkbox" checked="{{if todo_completed | checked}}"
+      label= title
+      button.destroy
+
+    input.edit value="{{title}}"
+
+template name="footer"
+  footer#footer
+    span#todo-count
+      strong= todos_not_completed
+      | &nbsp;item{{unless todos_one_not_completed | s}} left
+    ul#filters
+      each filters
+        li
+          a class="{{if filter_selected this | selected}}" href="#/{{this}}" = this
+
+    if todos_completed
+      button#clear-completed Clear completed ({{todos_completed}})
